@@ -1,4 +1,4 @@
-#!/bin/bash
+#!usr/bin/bash
 
 # ----------------------------
 # Configuration
@@ -7,7 +7,7 @@
 # Sensitive column name patterns
 #SENSITIVE_KEYS=("email" "*phone*" "*mobile*" "*ssn*" "*cssn*" "*city*" "*zip*" "*account*")
 #SENSITIVE_REGEX="email|phone|phone[_]?no|mobile|mobile[_]?no|cssn4|cssn|city|city[_]?name|zip|zipcode|account|account[_]?number"
-SENSITIVE_REGEX=("email" "phone" "phone[_]?no" "mobile" "mobile[_]?no" "ssn" "cssn") #"city" "city[_]?name" "zip" "zipcode" "account" "account[_]?number"
+SENSITIVE_REGEX=("email") # "phone" "phone[_]?no" "mobile" "mobile[_]?no" "ssn" "cssn") #"city" "city[_]?name" "zip" "zipcode" "account" "account[_]?number"
 # Target database and table for logging
 LOOKUP_DB="security_logs"
 LOOKUP_TABLE="lookup"

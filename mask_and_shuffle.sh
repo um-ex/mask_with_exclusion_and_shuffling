@@ -1,4 +1,5 @@
 #! usr/bin/bash
+start_time=$(date +%s)
 set -euo pipefail
 
 # Masking generators
@@ -40,6 +41,12 @@ shuffle_cssn4_cssn_pairs() {
     declare -a filtered_ids
 
     while IFS=$'\t' read -r pk cssn4 cssn; do
+        # Skip if cssn or cssn4 is null or invalid
+        if [[ -z "$cssn" || -z "$cssn4" || "${#cssn4}" -ne 4 ]]; then
+            echo "Skipping invalid pair: cssn='$cssn', cssn4='$cssn4' (row id: $pk)" # >> "$log_file"
+            continue
+        fi
+
         # Escape for SQL
         cssn4_escaped=$(escape_sql "$cssn4")
         cssn_escaped=$(escape_sql "$cssn")
@@ -99,6 +106,8 @@ shuffle_cssn4_cssn_pairs() {
         pk_escaped=$(escape_sql "${ids[$i]}")
         new_cssn4_escaped=$(escape_sql "$new_cssn4")
         new_cssn_escaped=$(escape_sql "$new_cssn")
+        
+        echo "Shuffled record ID ${ids[$i]}" #: New CSSN4=${new_cssn4}, New CSSN=${new_cssn}"
 
         sudo mysql --defaults-file=$HOME/.my.cnf -e "
             UPDATE \`$db\`.\`$table\`
@@ -107,7 +116,7 @@ shuffle_cssn4_cssn_pairs() {
         "
     done
 
-    echo "Finished shuffling CSSN4/CSSN pairs for $db.$table"
+    echo "Finished shuffling CSSN/CSSN4 pairs for $db.$table"
 }
 
 # Generator selector
@@ -189,7 +198,12 @@ while IFS=$'\t' read -r db table col; do
         current_val=$(sudo mysql --defaults-file="$HOME/.my.cnf" -N -e "
             SELECT \`$col\` FROM \`$db\`.\`$table\` WHERE \`$pk_col\` = '$id' LIMIT 1;
         ")
-
+        # Skip masking if email is already masked
+        if [[ "$col" == *email* && "$current_val" == *@cloudtech.com ]]; then
+            echo "Skipping $db.$table.$col for ID $id (already masked email)"
+            continue
+        fi
+        echo "masking $db.$table.$col for id $id"
         skip=0
         if [[ -n "$exclusions" ]]; then
             while IFS= read -r exclude_val; do
@@ -241,5 +255,9 @@ for db_table in "${!tables_to_shuffle[@]}"; do
         shuffle_cssn4_cssn_pairs "$db" "$table" "$pk_col"
     fi
 done
-
+end_time=$(date +%s)
+duration=$((end_time - start_time))
+minutes=$((duration / 60))
+seconds=$((duration % 60))
 echo "All sensitive fields masked. CSSN4/CSSN pairs shuffled."
+echo "Execution time : ${minutes} minutes and ${seconds} seconds."

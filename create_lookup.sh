@@ -7,7 +7,7 @@
 # Sensitive column name patterns
 #SENSITIVE_KEYS=("email" "*phone*" "*mobile*" "*ssn*" "*cssn*" "*city*" "*zip*" "*account*")
 #SENSITIVE_REGEX="email|phone|phone[_]?no|mobile|mobile[_]?no|cssn4|cssn|city|city[_]?name|zip|zipcode|account|account[_]?number"
-SENSITIVE_REGEX=("email") # "phone" "phone[_]?no" "mobile" "mobile[_]?no" "ssn" "cssn") #"city" "city[_]?name" "zip" "zipcode" "account" "account[_]?number"
+SENSITIVE_REGEX=("cemail" "cssn" "cssn4" "phone1") # "phone" "phone[_]?no" "mobile" "mobile[_]?no") #"city" "city[_]?name" "zip" "zipcode" "account" "account[_]?number"
 # Target database and table for logging
 LOOKUP_DB="security_logs"
 LOOKUP_TABLE="lookup"
@@ -39,7 +39,7 @@ databases=$(sudo mysql --defaults-file=$HOME/.my.cnf -N -e \
 
 # Loop through databases
 for db in $databases; do
-    echo "🔍 Scanning database: $db"
+    echo "Scanning database: $db"
     
     # Get all tables in the current database
     tables=$(sudo mysql --defaults-file=$HOME/.my.cnf -N -e \
@@ -64,7 +64,7 @@ for db in $databases; do
             # Loop through each regex pattern and check for a match
             for pattern in "${SENSITIVE_REGEX[@]}"; do
                 # Apply regex matching with case-insensitive option
-                if [[ "$col_lower" =~ $pattern ]]; then
+                if [[ "$col_lower" == $pattern ]]; then
                     to_mask=1
                     break
                 fi
